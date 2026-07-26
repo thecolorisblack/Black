@@ -1,233 +1,632 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SINGULARITY — Чёрная дыра</title>
-  <meta name="description" content="Интерактивное путешествие к горизонту событий. Реалистичная симуляция чёрной дыры прямо в браузере.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='30' fill='%23000'/><circle cx='50' cy='50' r='34' fill='none' stroke='%23ff9a3c' stroke-width='4'/></svg>">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EVENT HORIZON — путешествие к чёрной дыре</title>
+<meta name="description" content="Интерактивное путешествие к чёрной дыре: рендер в реальном времени по геодезическим Шварцшильда, замедление времени, приливные силы, зоопарк чёрных дыр и факты, в которые сложно поверить.">
+<meta name="theme-color" content="#05060a">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="EVENT HORIZON — путешествие к чёрной дыре">
+<meta property="og:description" content="Чёрная дыра, посчитанная по-настоящему: лучи идут по искривлённому пространству-времени прямо в вашем браузере.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='.55' stop-color='%23000'/%3E%3Cstop offset='.62' stop-color='%23ffb45c'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='32' height='32' fill='%2305060a'/%3E%3Ccircle cx='16' cy='16' r='11' fill='url(%23g)'/%3E%3C/svg%3E">
 </head>
 <body>
 
-  <div class="grain" aria-hidden="true"></div>
-  <div class="loader" id="loader">
-    <div class="loader-ring"></div>
-    <div class="loader-text">Искривляем пространство-время…</div>
+<!-- ═══════════════ ПРЕЛОАДЕР ═══════════════ -->
+<div class="preloader" id="preloader">
+  <div class="preloader__inner">
+    <div class="preloader__ring"><span></span><span></span><span></span></div>
+    <div class="preloader__label">
+      <span class="mono" id="preloader-status">инициализация метрики</span>
+      <span class="mono preloader__pct" id="preloader-pct">0%</span>
+    </div>
+    <div class="preloader__bar"><i id="preloader-fill"></i></div>
   </div>
+</div>
 
-  <header class="nav" id="nav">
-    <a class="nav-logo" href="#hero">
-      <span class="nav-logo-mark" aria-hidden="true"></span>
-      SINGULARITY
-    </a>
-    <nav class="nav-links">
-      <a href="#about">Природа</a>
-      <a href="#anatomy">Анатомия</a>
-      <a href="#numbers">Цифры</a>
-      <a href="#timeline">История</a>
-    </nav>
-  </header>
+<!-- ═══════════════ ФОН: WebGL ═══════════════ -->
+<canvas id="bh-canvas" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
 
-  <!-- ============ HERO ============ -->
-  <section class="hero" id="hero">
-    <canvas id="blackhole" aria-label="Симуляция чёрной дыры с гравитационным линзированием"></canvas>
-    <div class="hero-vignette" aria-hidden="true"></div>
-    <div class="hero-content">
-      <p class="hero-eyebrow reveal-line"><span>27&nbsp;000 световых лет от Земли</span></p>
-      <h1 class="hero-title">
-        <span class="hero-title-line"><span>ЧЁРНАЯ</span></span>
-        <span class="hero-title-line"><span class="hero-title-accent">ДЫРА</span></span>
-      </h1>
-      <p class="hero-sub reveal-line"><span>Место, где гравитация побеждает свет, а время замирает навсегда.</span></p>
+<!-- ═══════════════ ИНТЕРФЕЙС ═══════════════ -->
+<div class="scroll-progress" aria-hidden="true"><i id="scroll-fill"></i></div>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand__dot" aria-hidden="true"></span>
+    <span class="brand__name">EVENT&nbsp;HORIZON</span>
+  </a>
+  <nav class="nav" id="nav">
+    <a href="#anatomy">Анатомия</a>
+    <a href="#numbers">Цифры</a>
+    <a href="#time">Время</a>
+    <a href="#lab">Лаборатория</a>
+    <a href="#fall">Падение</a>
+    <a href="#zoo">Зоопарк</a>
+    <a href="#facts">Факты</a>
+  </nav>
+  <button class="hud-toggle mono" id="hud-toggle" aria-expanded="false" aria-controls="hud">рендер</button>
+</header>
+
+<!-- Панель управления рендером -->
+<aside class="hud" id="hud" hidden>
+  <div class="hud__head">
+    <span class="mono">SCHWARZSCHILD RAYTRACER</span>
+    <button class="hud__close" id="hud-close" aria-label="Закрыть панель">×</button>
+  </div>
+  <label class="hud__row">
+    <span>Наклон диска<b class="mono" id="v-incl">16°</b></span>
+    <input type="range" id="c-incl" min="0" max="85" value="16" step="1">
+  </label>
+  <label class="hud__row">
+    <span>Дистанция<b class="mono" id="v-dist">26 rs</b></span>
+    <input type="range" id="c-dist" min="5" max="60" value="26" step="0.5">
+  </label>
+  <label class="hud__row">
+    <span>Яркость диска<b class="mono" id="v-disk">100%</b></span>
+    <input type="range" id="c-disk" min="0" max="180" value="100" step="1">
+  </label>
+  <label class="hud__row">
+    <span>Качество<b class="mono" id="v-qual">авто</b></span>
+    <input type="range" id="c-qual" min="0" max="3" value="1" step="1">
+  </label>
+  <div class="hud__checks">
+    <label class="chk"><input type="checkbox" id="c-lens" checked><span>Линзирование</span></label>
+    <label class="chk"><input type="checkbox" id="c-dopp" checked><span>Доплер</span></label>
+  </div>
+  <div class="hud__stats mono">
+    <span id="stat-fps">— fps</span>
+    <span id="stat-res">— px</span>
+    <span id="stat-steps">— шагов/луч</span>
+  </div>
+</aside>
+
+<main id="top">
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero" data-cam="26,16,1">
+  <div class="hero__inner">
+    <p class="eyebrow mono reveal">Sagittarius A* · 26 673 световых года · прямо сейчас</p>
+    <h1 class="hero__title">
+      <span class="line"><span class="reveal-word">Горизонт</span></span>
+      <span class="line"><em><span class="reveal-word">событий</span></em></span>
+    </h1>
+    <p class="hero__lead reveal">
+      Место, где пространство падает внутрь быстрее скорости света. Всё, что вы видите ниже,
+      считается в реальном времени: лучи идут не по прямым, а по нулевым геодезическим
+      метрики Шварцшильда. Это не картинка чёрной дыры — это её тень.
+    </p>
+    <div class="hero__meta reveal">
+      <div class="stat"><b class="mono">2·10<sup>30</sup> кг</b><span>минимальная масса</span></div>
+      <div class="stat"><b class="mono">∞</b><span>кривизна в центре</span></div>
+      <div class="stat"><b class="mono">0 K</b><span>температура снаружи*</span></div>
     </div>
-    <div class="hero-scroll" aria-hidden="true">
-      <span class="hero-scroll-label">Погружение</span>
-      <span class="hero-scroll-line"></span>
-    </div>
-  </section>
+  </div>
+  <a class="scroll-hint" href="#anatomy" aria-label="Листайте вниз">
+    <span class="mono">листайте</span>
+    <i></i>
+  </a>
+</section>
 
-  <main>
-    <!-- ============ ABOUT ============ -->
-    <section class="section about" id="about">
-      <div class="container">
-        <p class="section-eyebrow reveal">01 — Природа</p>
-        <h2 class="section-title reveal">Что такое<br><em>чёрная дыра</em></h2>
-        <div class="about-grid">
-          <p class="about-lead reveal">
-            Это область пространства-времени, гравитация которой настолько велика,
-            что покинуть её не может ничто — даже свет, летящий со скоростью
-            299&nbsp;792&nbsp;км/с.
-          </p>
-          <div class="about-text reveal">
-            <p>
-              Чёрная дыра рождается, когда массивная звезда исчерпывает топливо и
-              коллапсирует под собственным весом. Вся её масса сжимается в точку
-              бесконечной плотности — <strong>сингулярность</strong>, — скрытую за
-              невидимой границей, которую называют горизонтом событий.
-            </p>
-            <p>
-              То сияющее кольцо, которое вы видите выше, — не сама дыра, а её
-              <strong>аккреционный диск</strong>: раскалённая до миллионов градусов
-              материя, закрученная в спираль на пути к горизонту. Свет диска
-              искривляется гравитацией так сильно, что мы видим и его обратную
-              сторону — над и под тенью дыры одновременно.
-            </p>
-          </div>
-        </div>
+<!-- ═══════════════ АНАТОМИЯ ═══════════════ -->
+<section class="section section--anatomy" id="anatomy" data-cam="17,30,0.85">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="eyebrow mono reveal">01 — Анатомия</p>
+      <h2 class="reveal">Из чего сделана <em>пустота</em></h2>
+      <p class="sec-lead reveal">
+        У чёрной дыры нет поверхности. Всё, что мы называем её «частями», — это границы,
+        проведённые по поведению света. Наведите курсор на слой.
+      </p>
+    </header>
+
+    <div class="anatomy">
+      <div class="anatomy__figure reveal">
+        <svg viewBox="0 0 520 520" class="cross" role="img" aria-label="Схема строения чёрной дыры">
+          <defs>
+            <radialGradient id="diskG" cx="50%" cy="50%">
+              <stop offset="0%"   stop-color="#fff6e0" stop-opacity="0"/>
+              <stop offset="42%"  stop-color="#ffb45c" stop-opacity=".95"/>
+              <stop offset="70%"  stop-color="#ff7a18" stop-opacity=".5"/>
+              <stop offset="100%" stop-color="#ff5e00" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="glowG" cx="50%" cy="50%">
+              <stop offset="0%" stop-color="#ffd9a0" stop-opacity=".55"/>
+              <stop offset="100%" stop-color="#ffd9a0" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <g class="cross__rings">
+            <circle class="ring ring--jet"   data-layer="jet"    cx="260" cy="260" r="238"/>
+            <circle class="ring ring--disk"  data-layer="disk"   cx="260" cy="260" r="186"/>
+            <circle class="ring ring--isco"  data-layer="isco"   cx="260" cy="260" r="132"/>
+            <circle class="ring ring--photo" data-layer="photon" cx="260" cy="260" r="99"/>
+            <circle class="ring ring--eh"    data-layer="horizon"cx="260" cy="260" r="66"/>
+          </g>
+
+          <ellipse class="disk-ell" cx="260" cy="260" rx="200" ry="52" fill="url(#diskG)"/>
+          <circle cx="260" cy="260" r="120" fill="url(#glowG)"/>
+          <circle class="shadow" cx="260" cy="260" r="66"/>
+          <circle class="photon-ring" cx="260" cy="260" r="67"/>
+          <circle class="sing" cx="260" cy="260" r="2.5"/>
+
+          <g class="ticks mono">
+            <text x="260" y="196" data-layer="horizon">rs</text>
+            <text x="260" y="163" data-layer="photon">1.5 rs</text>
+            <text x="260" y="130" data-layer="isco">3 rs</text>
+          </g>
+        </svg>
       </div>
-    </section>
 
-    <!-- ============ ANATOMY ============ -->
-    <section class="section anatomy" id="anatomy">
-      <div class="container">
-        <p class="section-eyebrow reveal">02 — Анатомия</p>
-        <h2 class="section-title reveal">Строение<br><em>монстра</em></h2>
-        <div class="cards">
-          <article class="card reveal" style="--d:0s">
-            <div class="card-num">I</div>
+      <ol class="anatomy__list">
+        <li class="layer reveal" data-layer="horizon">
+          <span class="layer__idx mono">rs</span>
+          <div>
             <h3>Горизонт событий</h3>
-            <p>Точка невозврата. Пересёкший её объект исчезает для внешней Вселенной навсегда — никакой сигнал изнутри не выйдет наружу.</p>
-            <div class="card-glow" aria-hidden="true"></div>
-          </article>
-          <article class="card reveal" style="--d:.1s">
-            <div class="card-num">II</div>
-            <h3>Сингулярность</h3>
-            <p>Центр дыры, где плотность стремится к бесконечности, а известные законы физики перестают работать. Здесь заканчиваются уравнения.</p>
-            <div class="card-glow" aria-hidden="true"></div>
-          </article>
-          <article class="card reveal" style="--d:.2s">
-            <div class="card-num">III</div>
-            <h3>Аккреционный диск</h3>
-            <p>Вихрь плазмы, разогретой трением до миллионов градусов. Ярче целых галактик — самый эффективный источник энергии во Вселенной.</p>
-            <div class="card-glow" aria-hidden="true"></div>
-          </article>
-          <article class="card reveal" style="--d:.3s">
-            <div class="card-num">IV</div>
+            <p>Не стена, а точка невозврата. Пересекая её, вы ничего не почувствуете —
+               но все возможные будущие траектории теперь ведут только в центр.
+               Радиус: <b class="mono">rs = 2GM/c²</b>.</p>
+          </div>
+        </li>
+        <li class="layer reveal" data-layer="photon">
+          <span class="layer__idx mono">1.5</span>
+          <div>
             <h3>Фотонная сфера</h3>
-            <p>Орбита, на которой свет вращается вокруг дыры по кругу. Именно она формирует тонкое яркое кольцо на границе тени.</p>
-            <div class="card-glow" aria-hidden="true"></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ QUOTE ============ -->
-    <section class="quote-section">
-      <div class="container">
-        <blockquote class="quote reveal">
-          <p>«Чёрные дыры — это места, где Бог разделил на ноль».</p>
-          <cite>— Стивен Райт</cite>
-        </blockquote>
-      </div>
-    </section>
-
-    <!-- ============ NUMBERS ============ -->
-    <section class="section numbers" id="numbers">
-      <div class="container">
-        <p class="section-eyebrow reveal">03 — Масштаб</p>
-        <h2 class="section-title reveal">Цифры, от которых<br><em>кружится голова</em></h2>
-        <div class="stats">
-          <div class="stat reveal" style="--d:0s">
-            <div class="stat-value"><span class="counter" data-target="4300000" data-format="space">0</span></div>
-            <div class="stat-label">масс Солнца — Стрелец A*, дыра в центре нашей Галактики</div>
+            <p>Здесь свет движется по окружности. Теоретически, зависнув на этой высоте,
+               вы увидели бы собственный затылок — луч обогнул бы дыру и вернулся в глаз.</p>
           </div>
-          <div class="stat reveal" style="--d:.1s">
-            <div class="stat-value"><span class="counter" data-target="6500000000" data-format="short">0</span></div>
-            <div class="stat-label">масс Солнца — M87*, первая сфотографированная чёрная дыра</div>
+        </li>
+        <li class="layer reveal" data-layer="isco">
+          <span class="layer__idx mono">3</span>
+          <div>
+            <h3>ISCO</h3>
+            <p>Последняя устойчивая орбита. Ближе вещество уже не может кружить — оно
+               срывается внутрь по спирали за считанные витки. Внутренний край диска.</p>
           </div>
-          <div class="stat reveal" style="--d:.2s">
-            <div class="stat-value"><span class="counter" data-target="99" data-format="plain">0</span>%</div>
-            <div class="stat-label">скорости света достигает материя у горизонта событий</div>
+        </li>
+        <li class="layer reveal" data-layer="disk">
+          <span class="layer__idx mono">10<sup>9</sup>K</span>
+          <div>
+            <h3>Аккреционный диск</h3>
+            <p>Газ трётся сам о себя и разогревается сильнее, чем ядро звезды. Приближающийся
+               к нам край ярче и голубее в разы — релятивистский бим-эффект.</p>
           </div>
-          <div class="stat reveal" style="--d:.3s">
-            <div class="stat-value">&gt;<span class="counter" data-target="40000000000000000000" data-format="power">0</span></div>
-            <div class="stat-label">тонн — вес чайной ложки вещества нейтронной звезды перед коллапсом</div>
+        </li>
+        <li class="layer reveal" data-layer="jet">
+          <span class="layer__idx mono">0.99c</span>
+          <div>
+            <h3>Джеты</h3>
+            <p>Часть вещества не падает, а выстреливает вдоль оси вращения магнитным полем —
+               на тысячи световых лет, почти со скоростью света.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ TIMELINE ============ -->
-    <section class="section timeline-section" id="timeline">
-      <div class="container">
-        <p class="section-eyebrow reveal">04 — История</p>
-        <h2 class="section-title reveal">Путь к<br><em>горизонту</em></h2>
-        <div class="timeline">
-          <div class="timeline-item reveal">
-            <div class="timeline-year">1783</div>
-            <div class="timeline-body">
-              <h3>Тёмные звёзды</h3>
-              <p>Джон Мичелл предполагает существование звёзд настолько массивных, что свет не может их покинуть.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">1915</div>
-            <div class="timeline-body">
-              <h3>Общая теория относительности</h3>
-              <p>Эйнштейн описывает гравитацию как искривление пространства-времени. Фундамент заложен.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">1916</div>
-            <div class="timeline-body">
-              <h3>Решение Шварцшильда</h3>
-              <p>Карл Шварцшильд, находясь на фронте, находит первое точное решение уравнений Эйнштейна — математическое описание чёрной дыры.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">1971</div>
-            <div class="timeline-body">
-              <h3>Лебедь X-1</h3>
-              <p>Обнаружен первый серьёзный кандидат в чёрные дыры — мощный источник рентгеновского излучения в созвездии Лебедя.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2015</div>
-            <div class="timeline-body">
-              <h3>Гравитационные волны</h3>
-              <p>LIGO ловит рябь пространства-времени от слияния двух чёрных дыр за 1,3 млрд световых лет от нас.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2019</div>
-            <div class="timeline-body">
-              <h3>Первая фотография</h3>
-              <p>Телескоп горизонта событий публикует снимок тени M87* — человечество впервые видит чёрную дыру своими глазами.</p>
-            </div>
-          </div>
-          <div class="timeline-item reveal">
-            <div class="timeline-year">2022</div>
-            <div class="timeline-body">
-              <h3>Сердце Млечного Пути</h3>
-              <p>Опубликован снимок Стрельца A* — сверхмассивной чёрной дыры в центре нашей собственной Галактики.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ OUTRO ============ -->
-    <section class="outro">
-      <div class="container">
-        <p class="outro-text reveal">
-          Мы — способ, которым Вселенная<br>смотрит в собственную бездну.
-        </p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-inner">
-      <span class="footer-logo">SINGULARITY</span>
-      <span class="footer-note">Симуляция в реальном времени · WebGL · Геодезические Шварцшильда</span>
+        </li>
+      </ol>
     </div>
-  </footer>
+  </div>
+</section>
 
-  <script src="js/blackhole.js"></script>
-  <script src="js/main.js"></script>
+<!-- ═══════════════ ЦИФРЫ ═══════════════ -->
+<section class="section section--numbers" id="numbers" data-cam="40,9,0.5">
+  <div class="wrap">
+    <header class="sec-head sec-head--center">
+      <p class="eyebrow mono reveal">02 — Порядки величин</p>
+      <h2 class="reveal">Числа, которые <em>не помещаются</em> в голове</h2>
+    </header>
+
+    <div class="numbers">
+      <article class="num reveal">
+        <b class="mono counter" data-to="66" data-dec="0" data-suffix=" млрд">0</b>
+        <span class="num__unit mono">M☉</span>
+        <p>Масса TON 618 — самой тяжёлой известной чёрной дыры. Её горизонт больше
+           орбиты Нептуна в сорок раз.</p>
+      </article>
+      <article class="num reveal">
+        <b class="mono counter" data-to="27" data-dec="0" data-suffix=" млн">0</b>
+        <span class="num__unit mono">км</span>
+        <p>Диаметр тени Стрельца A* — центральной дыры Млечного Пути. Внутри
+           поместилась бы орбита Меркурия.</p>
+      </article>
+      <article class="num num--tight reveal">
+        <b class="mono counter" data-to="1.5" data-dec="1" data-suffix="×10⁻¹⁴">0</b>
+        <span class="num__unit mono">K</span>
+        <p>Температура Хокинга для дыры звёздной массы. В сто миллионов раз холоднее
+           реликтового излучения — поэтому она растёт, а не испаряется.</p>
+      </article>
+      <article class="num reveal">
+        <b class="mono counter" data-to="67" data-dec="0" data-mode="exp">0</b>
+        <span class="num__unit mono">лет</span>
+        <p>Столько дыра массой Солнца будет испаряться. Возраст Вселенной —
+           1,4×10¹⁰ лет. Это ничто.</p>
+      </article>
+      <article class="num reveal">
+        <b class="mono counter" data-to="99.9" data-dec="1" data-suffix="%">0</b>
+        <span class="num__unit mono">c</span>
+        <p>Скорость вращения горизонта GRS 1915+105. Он тащит за собой само
+           пространство — эффект Лензе—Тирринга.</p>
+      </article>
+      <article class="num reveal">
+        <b class="mono counter" data-to="55" data-dec="0" data-suffix=" млн">0</b>
+        <span class="num__unit mono">св. лет</span>
+        <p>До M87* — первой сфотографированной чёрной дыры. Снимок собирали
+           восемь телескопов размером с планету.</p>
+      </article>
+    </div>
+
+    <p class="fineprint mono reveal">
+      * Строго говоря, температура не ноль: горизонт излучает по Хокингу. Просто настолько слабо,
+      что для звёздной дыры это 10⁻⁸ K — неотличимо от абсолютного нуля.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ ВРЕМЯ ═══════════════ -->
+<section class="section section--time" id="time" data-cam="14,38,1.1">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="eyebrow mono reveal">03 — Гравитационное замедление</p>
+      <h2 class="reveal">Ваши часы <em>врут</em> друг другу</h2>
+      <p class="sec-lead reveal">
+        Чем ближе к горизонту, тем медленнее идёт время для внешнего наблюдателя.
+        Двигайте ползунок: слева — часы того, кто остался далеко, справа — ваши.
+      </p>
+    </header>
+
+    <div class="timelab reveal">
+      <div class="clocks">
+        <figure class="clock" data-role="far">
+          <div class="clock__face">
+            <i class="hand hand--h" id="far-h"></i>
+            <i class="hand hand--m" id="far-m"></i>
+            <i class="hand hand--s" id="far-s"></i>
+            <span class="clock__pin"></span>
+          </div>
+          <figcaption><b>Наблюдатель вдали</b><span class="mono">r → ∞</span></figcaption>
+        </figure>
+
+        <div class="clocks__link" aria-hidden="true">
+          <span class="mono" id="dilation-factor">×1.00</span>
+          <div class="clocks__wave"><i></i><i></i><i></i></div>
+        </div>
+
+        <figure class="clock clock--near" data-role="near">
+          <div class="clock__face">
+            <i class="hand hand--h" id="near-h"></i>
+            <i class="hand hand--m" id="near-m"></i>
+            <i class="hand hand--s" id="near-s"></i>
+            <span class="clock__pin"></span>
+          </div>
+          <figcaption><b>Вы</b><span class="mono" id="near-caption">r = 10 rs</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="timelab__ctl">
+        <label class="slider">
+          <span>Расстояние до центра</span>
+          <input type="range" id="time-r" min="1.002" max="20" step="0.001" value="10">
+          <output class="mono" id="time-r-out">10.000 rs</output>
+        </label>
+        <div class="timelab__readout">
+          <div><span>Один ваш час снаружи длится</span><b class="mono" id="time-outside">1 ч 03 мин</b></div>
+          <div><span>Фактор √(1 − rs/r)</span><b class="mono" id="time-sqrt">0.9487</b></div>
+          <div><span>Красное смещение z</span><b class="mono" id="time-z">0.054</b></div>
+        </div>
+        <div class="timelab__quick">
+          <button class="pill" data-r="20">Далеко</button>
+          <button class="pill" data-r="3">ISCO</button>
+          <button class="pill" data-r="1.5">Фотонная сфера</button>
+          <button class="pill" data-r="1.01">У горизонта</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ЛАБОРАТОРИЯ ═══════════════ -->
+<section class="section section--lab" id="lab" data-cam="34,20,0.45">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="eyebrow mono reveal">04 — Лаборатория</p>
+      <h2 class="reveal">Соберите <em>свою</em> чёрную дыру</h2>
+      <p class="sec-lead reveal">
+        Введите массу — остальное посчитается по формулам Шварцшильда и Хокинга.
+        Осторожно с последним пресетом.
+      </p>
+    </header>
+
+    <div class="lab reveal">
+      <div class="lab__input">
+        <label class="mono" for="mass">Масса, в массах Солнца (M☉)</label>
+        <input type="text" id="mass" inputmode="decimal" value="4.3e6" autocomplete="off" spellcheck="false">
+        <div class="presets">
+          <button class="pill" data-mass="3.7e-6">Земля</button>
+          <button class="pill" data-mass="1">Солнце</button>
+          <button class="pill" data-mass="10">Звёздная</button>
+          <button class="pill" data-mass="4.3e6">Sgr A*</button>
+          <button class="pill" data-mass="6.5e9">M87*</button>
+          <button class="pill" data-mass="6.6e10">TON 618</button>
+        </div>
+        <p class="lab__hint mono" id="lab-hint">Sagittarius A* — наша домашняя чёрная дыра.</p>
+      </div>
+
+      <dl class="lab__out">
+        <div class="lab__cell"><dt>Радиус Шварцшильда</dt><dd class="mono" id="o-rs">—</dd></div>
+        <div class="lab__cell"><dt>Диаметр тени (2.6 rs)</dt><dd class="mono" id="o-shadow">—</dd></div>
+        <div class="lab__cell"><dt>Средняя плотность</dt><dd class="mono" id="o-dens">—</dd></div>
+        <div class="lab__cell"><dt>Температура Хокинга</dt><dd class="mono" id="o-temp">—</dd></div>
+        <div class="lab__cell"><dt>Время испарения</dt><dd class="mono" id="o-evap">—</dd></div>
+        <div class="lab__cell"><dt>Приливная сила на горизонте</dt><dd class="mono" id="o-tidal">—</dd></div>
+        <div class="lab__cell lab__cell--wide">
+          <dt>Вердикт для человека</dt>
+          <dd class="verdict" id="o-verdict">—</dd>
+        </div>
+      </dl>
+    </div>
+
+    <p class="fineprint mono reveal">
+      Приливная сила — разность ускорений на длине 1,8 м. Больше 10 g на горизонте означает,
+      что вас разорвёт раньше, чем вы его пересечёте. Парадокс: чем дыра больше, тем безопаснее вход.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ ПАДЕНИЕ ═══════════════ -->
+<section class="section section--fall" id="fall" data-cam="9,48,1.15">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="eyebrow mono reveal">05 — От первого лица</p>
+      <h2 class="reveal">Что вы увидите, <em>падая внутрь</em></h2>
+    </header>
+
+    <ol class="fall">
+      <li class="fall__step reveal">
+        <span class="fall__t mono">t − 8 мин</span>
+        <div>
+          <h3>Небо начинает сворачиваться</h3>
+          <p>Звёзды перед вами сжимаются в яркое кольцо. Гравитационная линза собирает свет
+             со всех сторон — вы видите даже то, что у вас за спиной.</p>
+        </div>
+      </li>
+      <li class="fall__step reveal">
+        <span class="fall__t mono">t − 90 c</span>
+        <div>
+          <h3>Синеет всё</h3>
+          <p>Падая, вы летите навстречу свету Вселенной. Он сдвигается в синюю часть спектра,
+             потом в ультрафиолет, потом в рентген. Космос начинает вас поджаривать.</p>
+        </div>
+      </li>
+      <li class="fall__step reveal">
+        <span class="fall__t mono">t − 12 c</span>
+        <div>
+          <h3>Кольцо схлопывается в точку</h3>
+          <p>Вся видимая Вселенная — миллиарды галактик, вся её будущая история — сжимается
+             в крошечный светящийся диск прямо над головой.</p>
+        </div>
+      </li>
+      <li class="fall__step reveal fall__step--mark">
+        <span class="fall__t mono">t = 0</span>
+        <div>
+          <h3>Горизонт. Ничего не происходит</h3>
+          <p>Ни толчка, ни вспышки, ни границы. Локально пространство здесь абсолютно обычное.
+             Вы узнаете о пересечении только по тому, что назад дороги больше нет.
+             Снаружи в этот момент ваше изображение навсегда застыло и покраснело.</p>
+        </div>
+      </li>
+      <li class="fall__step reveal">
+        <span class="fall__t mono">t + 0.2 c</span>
+        <div>
+          <h3>Спагеттификация</h3>
+          <p>Ноги ближе к центру, чем голова, и притягиваются сильнее. Разница растёт как 1/r³.
+             Тело вытягивается в нить, потом в цепочку атомов. Для дыры звёздной массы это
+             происходит ещё до горизонта.</p>
+        </div>
+      </li>
+      <li class="fall__step reveal">
+        <span class="fall__t mono">t + 12 мкс</span>
+        <div>
+          <h3>Сингулярность — это не место</h3>
+          <p>Внутри горизонта радиальная координата становится временем. Двигаться к центру
+             так же неизбежно, как двигаться в завтра. Сингулярность — не точка в пространстве,
+             а момент в вашем будущем.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════════ ЗООПАРК ═══════════════ -->
+<section class="section section--zoo" id="zoo" data-cam="46,13,0.45">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="eyebrow mono reveal">06 — Зоопарк</p>
+      <h2 class="reveal">Они бывают <em>очень</em> разные</h2>
+      <p class="sec-lead reveal">Шкала логарифмическая — иначе первая строка была бы невидимой,
+        а последняя не поместилась бы на километровый экран.</p>
+    </header>
+
+    <div class="zoo" id="zoo">
+      <div class="zoo__row reveal" data-log="0.04">
+        <span class="zoo__name">Первичная<em>гипотетическая</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">~10⁻¹⁵ м · масса горы</span>
+      </div>
+      <div class="zoo__row reveal" data-log="0.22">
+        <span class="zoo__name">Звёздная<em>Cygnus X-1</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">44 км · 21 M☉</span>
+      </div>
+      <div class="zoo__row reveal" data-log="0.4">
+        <span class="zoo__name">Промежуточная<em>HLX-1</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">~60 тыс. км · 20 000 M☉</span>
+      </div>
+      <div class="zoo__row reveal" data-log="0.62">
+        <span class="zoo__name">Сверхмассивная<em>Sagittarius A*</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">12,7 млн км · 4,3 млн M☉</span>
+      </div>
+      <div class="zoo__row reveal" data-log="0.83">
+        <span class="zoo__name">Гигант<em>M87*</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">38 млрд км · 6,5 млрд M☉</span>
+      </div>
+      <div class="zoo__row reveal zoo__row--max" data-log="1">
+        <span class="zoo__name">Ультрамассивная<em>TON 618</em></span>
+        <div class="zoo__bar"><i></i><span class="zoo__dot"></span></div>
+        <span class="zoo__val mono">390 млрд км · 66 млрд M☉</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ФАКТЫ ═══════════════ -->
+<section class="section section--facts" id="facts" data-cam="30,24,0.5">
+  <div class="wrap">
+    <header class="sec-head sec-head--center">
+      <p class="eyebrow mono reveal">07 — Странности</p>
+      <h2 class="reveal">Семь вещей, в которые <em>сложно поверить</em></h2>
+      <p class="sec-lead reveal">Переверните карточку.</p>
+    </header>
+
+    <div class="cards">
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">01</span>
+          <h3>Чёрные дыры лысые</h3>
+          <p>У них всего три параметра.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Масса, заряд, момент вращения — и всё. Две дыры с одинаковой тройкой абсолютно
+             тождественны, даже если одна собрана из водорода, а другая из энциклопедий.
+             Теорема «об отсутствии волос» стирает всю остальную информацию.</p>
+        </span>
+      </button>
+
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">02</span>
+          <h3>Они испаряются</h3>
+          <p>И под конец — взрываются.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Квантовые флуктуации у горизонта уносят энергию. Чем меньше дыра, тем горячее и
+             быстрее процесс: последняя секунда жизни выделяет энергию миллиона мегатонн.
+             Дыра массой Солнца доживёт до 10⁶⁷ лет.</p>
+        </span>
+      </button>
+
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">03</span>
+          <h3>Плотность может быть как у воды</h3>
+          <p>Если дыра достаточно велика.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Радиус растёт линейно с массой, а объём — как куб. Средняя плотность падает как 1/M².
+             У сверхмассивной дыры в 10⁸ M☉ она меньше плотности воздуха. Вы бы пересекли
+             горизонт, не заметив ничего необычного.</p>
+        </span>
+      </button>
+
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">04</span>
+          <h3>Из них можно добывать энергию</h3>
+          <p>Легально, по Пенроузу.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>У вращающейся дыры есть эргосфера — область снаружи горизонта, где невозможно
+             стоять на месте. Бросив туда груз и разделив его надвое, можно вытащить обратно
+             больше энергии, чем вложил. До 29% массы дыры — за счёт её вращения.</p>
+        </span>
+      </button>
+
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">05</span>
+          <h3>Они самые эффективные двигатели</h3>
+          <p>Эффективнее термояда в 10 раз.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Аккреционный диск переводит в излучение до 6% массы покоя (42% для быстро
+             вращающейся). Термоядерный синтез в звезде — 0,7%. Поэтому квазары светят ярче,
+             чем сотни галактик вместе взятых.</p>
+        </span>
+      </button>
+
+      <button class="card reveal" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">06</span>
+          <h3>Тень больше горизонта</h3>
+          <p>В 2,6 раза.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Лучи, прошедшие ближе 2,6 rs по прицельному параметру, всё равно затягиваются внутрь.
+             Поэтому тёмное пятно на снимках EHT заметно крупнее самого горизонта, а вокруг него
+             светится фотонное кольцо из лучей, обогнувших дыру.</p>
+        </span>
+      </button>
+
+      <button class="card reveal card--wide" data-card>
+        <span class="card__face card__face--front">
+          <span class="card__num mono">07</span>
+          <h3>Информационный парадокс до сих пор не решён</h3>
+          <p>Главный спор физики за полвека.</p>
+          <span class="card__more mono">раскрыть</span>
+        </span>
+        <span class="card__face card__face--back">
+          <p>Квантовая механика запрещает уничтожать информацию. Но излучение Хокинга выглядит
+             абсолютно тепловым — в нём как будто нет памяти о том, что упало внутрь. Хокинг
+             проспорил энциклопедию, современные модели говорят об «островах» энтропии и
+             голографии, но окончательного ответа нет до сих пор.</p>
+        </span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ФИНАЛ ═══════════════ -->
+<section class="section section--outro" data-cam="11,8,1.2">
+  <div class="wrap wrap--narrow">
+    <blockquote class="quote reveal">
+      <p>Чёрные дыры — не там, где Бог поделил на ноль. Это места, где Вселенная
+         пишет свои законы самым крупным шрифтом, какой у неё есть.</p>
+    </blockquote>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__in">
+    <div>
+      <p class="mono">EVENT HORIZON</p>
+      <p class="footer__sub">Рендер: трассировка нулевых геодезических метрики Шварцшильда в реальном
+        времени. Чистый WebGL, ноль зависимостей.</p>
+    </div>
+    <ul class="footer__links mono">
+      <li>Метрика Шварцшильда, 1916</li>
+      <li>Излучение Хокинга, 1974</li>
+      <li>EHT · M87*, 2019</li>
+      <li>EHT · Sgr A*, 2022</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="js/blackhole.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
