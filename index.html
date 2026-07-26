@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SINGULARITY — Чёрная дыра</title>
+  <meta name="description" content="Интерактивное путешествие к горизонту событий. Реалистичная симуляция чёрной дыры прямо в браузере.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='30' fill='%23000'/><circle cx='50' cy='50' r='34' fill='none' stroke='%23ff9a3c' stroke-width='4'/></svg>">
+</head>
+<body>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="loader" id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Искривляем пространство-время…</div>
+  </div>
+
+  <header class="nav" id="nav">
+    <a class="nav-logo" href="#hero">
+      <span class="nav-logo-mark" aria-hidden="true"></span>
+      SINGULARITY
+    </a>
+    <nav class="nav-links">
+      <a href="#about">Природа</a>
+      <a href="#anatomy">Анатомия</a>
+      <a href="#numbers">Цифры</a>
+      <a href="#timeline">История</a>
+    </nav>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <canvas id="blackhole" aria-label="Симуляция чёрной дыры с гравитационным линзированием"></canvas>
+    <div class="hero-vignette" aria-hidden="true"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow reveal-line"><span>27&nbsp;000 световых лет от Земли</span></p>
+      <h1 class="hero-title">
+        <span class="hero-title-line"><span>ЧЁРНАЯ</span></span>
+        <span class="hero-title-line"><span class="hero-title-accent">ДЫРА</span></span>
+      </h1>
+      <p class="hero-sub reveal-line"><span>Место, где гравитация побеждает свет, а время замирает навсегда.</span></p>
+    </div>
+    <div class="hero-scroll" aria-hidden="true">
+      <span class="hero-scroll-label">Погружение</span>
+      <span class="hero-scroll-line"></span>
+    </div>
+  </section>
+
+  <main>
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about">
+      <div class="container">
+        <p class="section-eyebrow reveal">01 — Природа</p>
+        <h2 class="section-title reveal">Что такое<br><em>чёрная дыра</em></h2>
+        <div class="about-grid">
+          <p class="about-lead reveal">
+            Это область пространства-времени, гравитация которой настолько велика,
+            что покинуть её не может ничто — даже свет, летящий со скоростью
+            299&nbsp;792&nbsp;км/с.
+          </p>
+          <div class="about-text reveal">
+            <p>
+              Чёрная дыра рождается, когда массивная звезда исчерпывает топливо и
+              коллапсирует под собственным весом. Вся её масса сжимается в точку
+              бесконечной плотности — <strong>сингулярность</strong>, — скрытую за
+              невидимой границей, которую называют горизонтом событий.
+            </p>
+            <p>
+              То сияющее кольцо, которое вы видите выше, — не сама дыра, а её
+              <strong>аккреционный диск</strong>: раскалённая до миллионов градусов
+              материя, закрученная в спираль на пути к горизонту. Свет диска
+              искривляется гравитацией так сильно, что мы видим и его обратную
+              сторону — над и под тенью дыры одновременно.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ANATOMY ============ -->
+    <section class="section anatomy" id="anatomy">
+      <div class="container">
+        <p class="section-eyebrow reveal">02 — Анатомия</p>
+        <h2 class="section-title reveal">Строение<br><em>монстра</em></h2>
+        <div class="cards">
+          <article class="card reveal" style="--d:0s">
+            <div class="card-num">I</div>
+            <h3>Горизонт событий</h3>
+            <p>Точка невозврата. Пересёкший её объект исчезает для внешней Вселенной навсегда — никакой сигнал изнутри не выйдет наружу.</p>
+            <div class="card-glow" aria-hidden="true"></div>
+          </article>
+          <article class="card reveal" style="--d:.1s">
+            <div class="card-num">II</div>
+            <h3>Сингулярность</h3>
+            <p>Центр дыры, где плотность стремится к бесконечности, а известные законы физики перестают работать. Здесь заканчиваются уравнения.</p>
+            <div class="card-glow" aria-hidden="true"></div>
+          </article>
+          <article class="card reveal" style="--d:.2s">
+            <div class="card-num">III</div>
+            <h3>Аккреционный диск</h3>
+            <p>Вихрь плазмы, разогретой трением до миллионов градусов. Ярче целых галактик — самый эффективный источник энергии во Вселенной.</p>
+            <div class="card-glow" aria-hidden="true"></div>
+          </article>
+          <article class="card reveal" style="--d:.3s">
+            <div class="card-num">IV</div>
+            <h3>Фотонная сфера</h3>
+            <p>Орбита, на которой свет вращается вокруг дыры по кругу. Именно она формирует тонкое яркое кольцо на границе тени.</p>
+            <div class="card-glow" aria-hidden="true"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUOTE ============ -->
+    <section class="quote-section">
+      <div class="container">
+        <blockquote class="quote reveal">
+          <p>«Чёрные дыры — это места, где Бог разделил на ноль».</p>
+          <cite>— Стивен Райт</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- ============ NUMBERS ============ -->
+    <section class="section numbers" id="numbers">
+      <div class="container">
+        <p class="section-eyebrow reveal">03 — Масштаб</p>
+        <h2 class="section-title reveal">Цифры, от которых<br><em>кружится голова</em></h2>
+        <div class="stats">
+          <div class="stat reveal" style="--d:0s">
+            <div class="stat-value"><span class="counter" data-target="4300000" data-format="space">0</span></div>
+            <div class="stat-label">масс Солнца — Стрелец A*, дыра в центре нашей Галактики</div>
+          </div>
+          <div class="stat reveal" style="--d:.1s">
+            <div class="stat-value"><span class="counter" data-target="6500000000" data-format="short">0</span></div>
+            <div class="stat-label">масс Солнца — M87*, первая сфотографированная чёрная дыра</div>
+          </div>
+          <div class="stat reveal" style="--d:.2s">
+            <div class="stat-value"><span class="counter" data-target="99" data-format="plain">0</span>%</div>
+            <div class="stat-label">скорости света достигает материя у горизонта событий</div>
+          </div>
+          <div class="stat reveal" style="--d:.3s">
+            <div class="stat-value">&gt;<span class="counter" data-target="40000000000000000000" data-format="power">0</span></div>
+            <div class="stat-label">тонн — вес чайной ложки вещества нейтронной звезды перед коллапсом</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TIMELINE ============ -->
+    <section class="section timeline-section" id="timeline">
+      <div class="container">
+        <p class="section-eyebrow reveal">04 — История</p>
+        <h2 class="section-title reveal">Путь к<br><em>горизонту</em></h2>
+        <div class="timeline">
+          <div class="timeline-item reveal">
+            <div class="timeline-year">1783</div>
+            <div class="timeline-body">
+              <h3>Тёмные звёзды</h3>
+              <p>Джон Мичелл предполагает существование звёзд настолько массивных, что свет не может их покинуть.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">1915</div>
+            <div class="timeline-body">
+              <h3>Общая теория относительности</h3>
+              <p>Эйнштейн описывает гравитацию как искривление пространства-времени. Фундамент заложен.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">1916</div>
+            <div class="timeline-body">
+              <h3>Решение Шварцшильда</h3>
+              <p>Карл Шварцшильд, находясь на фронте, находит первое точное решение уравнений Эйнштейна — математическое описание чёрной дыры.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">1971</div>
+            <div class="timeline-body">
+              <h3>Лебедь X-1</h3>
+              <p>Обнаружен первый серьёзный кандидат в чёрные дыры — мощный источник рентгеновского излучения в созвездии Лебедя.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">2015</div>
+            <div class="timeline-body">
+              <h3>Гравитационные волны</h3>
+              <p>LIGO ловит рябь пространства-времени от слияния двух чёрных дыр за 1,3 млрд световых лет от нас.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">2019</div>
+            <div class="timeline-body">
+              <h3>Первая фотография</h3>
+              <p>Телескоп горизонта событий публикует снимок тени M87* — человечество впервые видит чёрную дыру своими глазами.</p>
+            </div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-year">2022</div>
+            <div class="timeline-body">
+              <h3>Сердце Млечного Пути</h3>
+              <p>Опубликован снимок Стрельца A* — сверхмассивной чёрной дыры в центре нашей собственной Галактики.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ OUTRO ============ -->
+    <section class="outro">
+      <div class="container">
+        <p class="outro-text reveal">
+          Мы — способ, которым Вселенная<br>смотрит в собственную бездну.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-logo">SINGULARITY</span>
+      <span class="footer-note">Симуляция в реальном времени · WebGL · Геодезические Шварцшильда</span>
+    </div>
+  </footer>
+
+  <script src="js/blackhole.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
