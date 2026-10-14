@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a12">
+<title>RIDER — гравитационный заезд</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: #0a0a12; color: #fff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  #game { display: block; width: 100vw; height: 100vh; height: 100dvh; }
+
+  .hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 5;
+    font-weight: 600; font-size: 15px; letter-spacing: .04em;
+  }
+  .hud .stat { text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+  .hud .stat b { color: #ff9a3c; }
+  #distance { font-size: 24px; }
+  #best { font-size: 12px; opacity: .7; margin-top: 2px; font-weight: 400; }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(10, 10, 18, .82); backdrop-filter: blur(6px);
+    text-align: center; padding: 24px;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h1 {
+    font-size: 42px; letter-spacing: .12em; font-weight: 800; line-height: 1;
+    background: linear-gradient(90deg, #fff 30%, #ff9a3c);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .overlay h2 { font-size: 26px; letter-spacing: .1em; font-weight: 800; }
+  .overlay p { margin-top: 12px; font-size: 14px; opacity: .75; max-width: 320px; line-height: 1.5; }
+  .btn {
+    margin-top: 28px; pointer-events: auto;
+    padding: 14px 44px; border: none; border-radius: 999px;
+    background: linear-gradient(90deg, #ff9a3c, #ff5e62);
+    color: #fff; font-size: 16px; font-weight: 700; letter-spacing: .08em;
+    cursor: pointer; transition: transform .15s ease;
+  }
+  .btn:active { transform: scale(.94); }
+  .tip { margin-top: 18px; font-size: 12px; opacity: .5; }
+  .crash-dist { font-size: 40px; font-weight: 800; color: #ff9a3c; margin-top: 8px; }
+  @media (min-width: 700px) {
+    body { display: flex; align-items: center; justify-content: center; background: #05050b; }
+    #game, .overlay, .hud { max-width: 430px; left: 50%; transform: translateX(-50%); }
+    #game { height: 100dvh !important; border-radius: 0; box-shadow: 0 0 60px rgba(255,154,60,.08); }
+    .overlay { height: 100%; inset: 0; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div>
+    <div class="stat" id="distance">0 м</div>
+    <div id="best">рекорд: 0 м</div>
+  </div>
+  <div class="stat" id="flips">FLIPS <b>0</b></div>
+</div>
+
+<div class="overlay" id="menu">
+  <h1>RIDER</h1>
+  <p>Удерживай палец на экране — газ. Отпусти в воздухе — вращение назад. Проедь как можно дальше и не сломай шею.</p>
+  <button class="btn" id="playBtn">СТАРТ</button>
+  <div class="tip">Совет: тапни « газ » перед трамплином</div>
+</div>
+
+<div class="overlay hidden" id="crash">
+  <h2>КРУШЕНИЕ</h2>
+  <div class="crash-dist" id="crashDist">0 м</div>
+  <p id="crashMsg"></p>
+  <button class="btn" id="retryBtn">ЕЩЁ РАЗ</button>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
